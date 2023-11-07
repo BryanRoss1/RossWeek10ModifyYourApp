@@ -23,19 +23,13 @@ class MainActivity : AppCompatActivity() {
 
     private val list = ArrayList<Contact>()
     private var adapter: NameAdapter? = null
-    private var useDrawer = false
-    private lateinit var selectedDate: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         adapter = NameAdapter(list) { contact: Contact ->
-            if (useDrawer) {
-                showDrawer(contact)
-            } else {
-                showDialog(contact)
-            }
+            showDialog(contact)
         }
 
         val recycler = findViewById<RecyclerView>(R.id.recycler)
@@ -44,11 +38,7 @@ class MainActivity : AppCompatActivity() {
 
         val fab = findViewById<FloatingActionButton>(R.id.fab)
         fab.setOnClickListener { _ ->
-            if (useDrawer) {
-                showDrawer(null)
-            } else {
-                showDialog(null)
-            }
+            showDialog(null)
         }
 
     }
@@ -65,17 +55,6 @@ class MainActivity : AppCompatActivity() {
         connectViews(layout, contact, dialog)
 
         dialog.show()
-    }
-
-
-    private fun showDrawer(contact: Contact?){
-        val bottomSheetDialog = BottomSheetDialog(this, R.style.BottomSheetDialog)
-        val layout = LayoutInflater.from(this).inflate(R.layout.view_dialog, null)
-        bottomSheetDialog.setContentView(layout)
-
-        connectViews(layout, contact, bottomSheetDialog)
-
-        bottomSheetDialog.show()
     }
 
     private fun connectViews(layout: View, contact: Contact?, dialog: Dialog) {
@@ -114,15 +93,5 @@ class MainActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_switch_input -> {
-                useDrawer = !useDrawer
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
     }
 }
