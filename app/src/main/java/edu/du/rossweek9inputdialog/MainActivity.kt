@@ -1,6 +1,7 @@
 package edu.du.rossweek9inputdialog
 
 import android.app.Dialog
+import android.content.Context
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -17,11 +18,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.gson.Gson
+import java.io.BufferedReader
+import java.io.FileNotFoundException
+import java.io.InputStreamReader
 
 
 class MainActivity : AppCompatActivity() {
 
-    private val list = ArrayList<Contact>()
+    private var list = ContactList(ArrayList())
     private var adapter: NameAdapter? = null
     private var useDrawer = false
     private lateinit var selectedDate: String
@@ -30,7 +35,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        adapter = NameAdapter(list) { contact: Contact ->
+        loadListFromFile()
+
+        adapter = NameAdapter(list.contacts) { contact: Contact ->
             if (useDrawer) {
                 showDrawer(contact)
             } else {
@@ -101,11 +108,12 @@ class MainActivity : AppCompatActivity() {
             val newDate = selectedDate
 
             if(contact == null) {
-                list.add(Contact(newName, newDate))
+                list.contacts.add(Contact(newName, newDate))
             } else {
                 contact.name = newName
                 contact.date = newDate
             }
+            saveListToFile()
             adapter?.notifyDataSetChanged()
             dialog.hide()
         }
@@ -124,5 +132,34 @@ class MainActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun saveListToFile() {
+        applicationContext.openFileOutput("output.json", Context.MODE_PRIVATE).use {
+            it.write(getStringForList(list).toByteArray())
+        }
+    }
+
+    private fun loadListFromFile() {
+        try {
+            val fileInputStream = applicationContext.openFileInput("output.json")
+            val inStream = BufferedReader(InputStreamReader(fileInputStream))
+            list = getListForString(inStream.readLine())
+        } catch (e: FileNotFoundException){
+
+        }
+    }
+    private fun getStringForList(list: ContactList): String {
+        val gson = Gson()
+        val jsonString = gson.toJson(list)
+
+        return jsonString
+    }
+
+    private fun getListForString(saved: String): ContactList {
+        val gson = Gson()
+        list = gson.fromJson(saved, ContactList::class.java)
+
+        return list
     }
 }
