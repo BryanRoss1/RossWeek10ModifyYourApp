@@ -2,6 +2,7 @@ package edu.du.rossweek9inputdialog
 
 import android.app.Dialog
 import android.content.Context
+import android.content.SharedPreferences
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -26,6 +27,10 @@ import java.io.InputStreamReader
 
 class MainActivity : AppCompatActivity() {
 
+    companion object {
+        private val KEY_LIST = "contact_list"
+    }
+
     private var list = ContactList(ArrayList())
     private var adapter: NameAdapter? = null
     private var useDrawer = false
@@ -35,7 +40,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        loadListFromFile()
+        //loadListFromFile()
+        loadListFromSharedPreferences()
 
         adapter = NameAdapter(list.contacts) { contact: Contact ->
             if (useDrawer) {
@@ -113,7 +119,8 @@ class MainActivity : AppCompatActivity() {
                 contact.name = newName
                 contact.date = newDate
             }
-            saveListToFile()
+            //saveListToFile()
+            saveListToSharedPreferences()
             adapter?.notifyDataSetChanged()
             dialog.hide()
         }
@@ -133,6 +140,24 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+    fun saveListToSharedPreferences() {
+        val sharedPref: SharedPreferences = getSharedPreferences(
+            getString(R.string.pref_name_contact_storage), Context.MODE_PRIVATE
+        )
+        sharedPref.edit().putString(KEY_LIST, getStringForList(list)).apply()
+    }
+
+    fun loadListFromSharedPreferences() {
+        val sharedPref: SharedPreferences = getSharedPreferences(
+            getString(R.string.pref_name_contact_storage), Context.MODE_PRIVATE
+        )
+        val saved = sharedPref.getString(KEY_LIST, null)
+        if (saved != null) {
+            list = getListForString(saved)
+        }
+    }
+
 
     private fun saveListToFile() {
         applicationContext.openFileOutput("output.json", Context.MODE_PRIVATE).use {
